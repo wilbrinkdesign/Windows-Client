@@ -1,4 +1,3 @@
-# Timezone instellen system locale
 Set-WinHomeLocation -GeoID 176
 Set-TimeZone -Id "W. Europe Standard Time"
 Tzutil /s "W. Europe Standard Time"
