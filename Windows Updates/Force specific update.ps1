@@ -1,22 +1,17 @@
-Param($dir)
+# Get Windows name and build number
+$Windows_Build = (Get-WmiObject -class Win32_OperatingSystem).BuildNumber
+$Windows_Name = (Get-WmiObject -class Win32_OperatingSystem).Caption
 
-# Start logging
-Start-Transcript -Path "$dir\wu.log"
-
-# Windows versie opvragen
-$windows_versie = (Get-WmiObject -class Win32_OperatingSystem).BuildNumber
-$windows_naam = (Get-WmiObject -class Win32_OperatingSystem).Caption
-
-# Installed Windows Updates opvragen
-$wu_search = New-Object -ComObject "Microsoft.Update.Searcher"
-$wu_history = $wu_search.GetTotalHistoryCount()
-$wu = $wu_search.QueryHistory(0,$wu_history)
+# Get all installed Windows Updates
+$WU_Search = New-Object -ComObject "Microsoft.Update.Searcher"
+$WU_History = $WU_Search.GetTotalHistoryCount()
+$wu = $WU_Search.QueryHistory(0,$WU_History)
 $wu1 = foreach ($w in $wu) { $w.Title}
 $wu2 = (Get-HotFix).HotFixID
-$wu_all = $wu1+$wu2
+$WU_All = $wu1+$wu2
 
-# Geraakte Windows builds (versies) (https://docs.microsoft.com/en-us/windows/release-health/release-information) met de bijbehorende KB nummers en download links
-$updates = @{
+# Windows builds: https://docs.microsoft.com/en-us/windows/release-health/release-information
+$KB_Updates = @{
    "17763" = [PSCustomObject]@{KB="KB5008218";URL="http://download.windowsupdate.com/d/msdownload/update/software/secu/2021/12/windows10.0-kb5008218-x64_66e07f2fc23728ca0b8f395df15da52546e45e45.msu"} # 1809 Windows 10
    "18363" = [PSCustomObject]@{KB="KB5008206";URL="http://download.windowsupdate.com/d/msdownload/update/software/secu/2021/12/windows10.0-kb5008206-x64_21e0a9eade0fa1885d5c96cd1cf9b12fbc8ef8d9.msu"} # 1909 Windows 10
    "19041" = [PSCustomObject]@{KB="KB5008212";URL="http://download.windowsupdate.com/d/msdownload/update/software/secu/2021/12/windows10.0-kb5008212-x64_aef75b014bf6a8b9f858533d9dafb07c6f6fb741.msu"} # 2004 Windows 10
@@ -25,28 +20,16 @@ $updates = @{
    "22000" = [PSCustomObject]@{KB="KB5008215";URL="http://download.windowsupdate.com/d/msdownload/update/software/secu/2021/12/windows10.0-kb5008215-x64_8b19785f2a319bd716c6cee9fbf345cf19f6941b.msu"} # 21H2 Windows 11
 }
 
-# De Windows OS naam, KB nummer en de download link mocht het device in aanmerking komen, anders zijn de variabelen leeg
-$kb_nummer = $updates[$windows_versie].KB
-$download_link = $updates[$windows_versie].URL
+# Get the update that corresponds to the build number
+$KB_Number = $KB_Updates[$Windows_Build].KB
+$Download_Link = $KB_Updates[$Windows_Build].URL
 
-# Als het device in aanmerking komt voor een spoed update, installeer deze dan
-If ($kb_nummer) # KB nummer gevuld? Oftewel, komt het device in aanmerking voor deze spoed update?
+# If the device needs the update, install it!
+If ($KB_Number)
 {
-    If (!($wu_all | Where-Object {$_ -like "*$kb_nummer*"})) # Windows Update nog niet eerder geinstalleerd?
+    If (!($WU_All | Where-Object { $_ -like "*$KB_Number*" }))
     {
-        Write-Host "$kb_nummer wordt nu gedownload en geinstalleerd voor $windows_naam, build nummer $windows_versie. Een ogenblik geduld a.u.b." -ForegroundColor YELLOW
-        (New-Object System.Net.WebClient).DownloadFile($download_link, "$dir\$kb_nummer.msu")
-        wusa.exe "$dir\$kb_nummer.msu" /quiet /norestart
-    }
-    Else
-    {
-        Write-Host "$kb_nummer is al geinstalleerd voor $windows_naam, build nummer $windows_versie." -ForegroundColor GREEN
+        (New-Object System.Net.WebClient).DownloadFile($Download_Link, "$env:TEMP\$KB_Number.msu")
+        wusa.exe "$env:TEMP\$KB_Number.msu" /quiet /norestart
     }
 }
-Else
-{
-    Write-Host "Dit device ($windows_naam, build nummer $windows_versie) komt niet in aanmerking voor deze spoed update." -ForegroundColor GREEN
-}
-
-# Stop logging
-Stop-Transcript
