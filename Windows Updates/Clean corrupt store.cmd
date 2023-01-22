@@ -1,8 +1,3 @@
-ECHO Normale manier
-sfc /scannow
-dism /Online /Cleanup-image /Restorehealth
-
-ECHO Dirty manier
 net stop bits
 net stop wuauserv
 net stop appidsvc
