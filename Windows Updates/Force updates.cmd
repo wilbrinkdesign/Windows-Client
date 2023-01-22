@@ -1,4 +1,0 @@
-usoclient scaninstallwait
-usoclient startdownload
-usoclient scaninstall
-usoclient startinstall
