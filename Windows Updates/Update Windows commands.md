@@ -7,7 +7,7 @@ usoclient scaninstall
 usoclient startinstall
 ```
 
-### Wuacult
+### Wuauclt
 
 ```cmd
 wuauclt /dectectnow /updatenow
