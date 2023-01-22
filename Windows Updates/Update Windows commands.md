@@ -10,7 +10,7 @@ usoclient startinstall
 ### Wuacult
 
 ```cmd
-wuauclt /dectectnow /updatenow # Update now
-wuauclt /resetauthorization # Reset WSUS
-wuauclt /reportnow # Report to WSUS
+wuauclt /dectectnow /updatenow
+wuauclt /resetauthorization
+wuauclt /reportnow
 ```
