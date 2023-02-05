@@ -1,6 +1,6 @@
 ### New version: Get-EventLog
 
-```powershll
+```powershell
 Get-Eventlog -LogName <log> -Source <source> | Where { $_.message -like "*<text>*" }
 ```
 
